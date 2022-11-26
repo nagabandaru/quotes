@@ -1,10 +1,34 @@
 # Explaination
 
-Created services folder `src/services`
+## Created services folder `src/services`
 It has 
+
+```
 quote.js
 addons.js
+```
 
+Reason for seperate files is an enterprise level all usually Resource may have set of sub resources to call usually we put them in one file so it is easy to test and mock them
+. Example
+PetStore Resource have following subresources
+
+```
+GET /pets/{petId}
+POST /pets
+DELETE /pets/{petId}
+```
+
+Those above resource can be all kept in single file and call it PetStoreService.js
+usually methods of the service are
+
+```
+getPet(petId)
+createPet()
+deletePet(petId)
+```
+
+In our case though quotes and addons may be related. However, For the demonstration purpose
+I have seperated them in two files.
 
 
 
