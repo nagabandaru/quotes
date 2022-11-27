@@ -1,7 +1,6 @@
 import styled from "styled-components";
 import { CenterAlignedActionsBlock } from "../App.styled";
 import { periodHumanReadable, PERIODS } from "../mappings";
-import { Button } from "./basic/button";
 import { Card } from "./basic/Card";
 import { TwoStateButton } from "./basic/toggled_components";
 import { Heading2 } from "./basic/typography";
