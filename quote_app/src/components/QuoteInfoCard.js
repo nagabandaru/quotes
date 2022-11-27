@@ -15,7 +15,6 @@ const NoBorderCard = styled(Card)`
  * @returns 
  */
 export function QuoteInfoCard({quote, selectedAddons=[], onAddOnRemoved}) {
-    console.log(selectedAddons)
     return <NoBorderCard>
        <Heading1>Hey, {quote.firstName}</Heading1>
         <div>Here is your quote</div>

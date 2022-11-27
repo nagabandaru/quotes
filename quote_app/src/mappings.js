@@ -1,8 +1,8 @@
 
 
 export const PERIODS = Object.freeze({
-    MONTHLY:   Symbol("MONTHLY"),
-    ANNUAL:  Symbol("ANNUAL")
+    MONTHLY:   "monthly",
+    ANNUAL:  "annual"
 });
 
 export const periodHumanReadable = {

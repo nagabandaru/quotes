@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { periodHumanReadable, PERIODS } from "../mappings"
-import { Button } from "./basic/button";
 import { Card } from "./basic/Card"
 import { NormalText } from "./basic/typography";
 import classnames from "classnames"
@@ -18,8 +17,8 @@ const TitleBlock = styled.div`
     display: grid;
     grid-template-columns: 1fr fit-content(100%);
 `
-export function AddOnCard({ index, details, selectedPeriod, onSelected, onRemoved }) {
-    return <StyledAddonCard className={classnames({selected: details.isSelected})}>
+export function AddOnCard({ index, details, selected, selectedPeriod, onSelected, onRemoved }) {
+    return <StyledAddonCard className={classnames({selected: selected})}>
         <TitleBlock>
             <Title>
                 <NormalText>{details.title}</NormalText>
@@ -39,7 +38,7 @@ export function AddOnCard({ index, details, selectedPeriod, onSelected, onRemove
             <TwoStateButton
                 button1Text={"Select this extra"}
                 button2Text={"Remove this extra"}
-                togglePredicate={!details['isSelected']}
+                togglePredicate={!selected}
                 onToggle={(predicate)=>!predicate? onSelected(index): onRemoved(index)}
             ></TwoStateButton>
         </RightAlignedActionsBlock>
