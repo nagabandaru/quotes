@@ -19,7 +19,7 @@ export function QuotesPage(){
         <Block>
           {!loading && <Suspense fallback={<Loader>Loading all quotes</Loader>}>
               {quotes.current.length === 0 && <Block>No quotes found. Alerted web adminstrator.</Block>}
-              <ol>{quotes.current.map(({id,quoteRef})=><li><Link key={id} to={`/quote/${id}`}>{quoteRef}</Link></li>)}</ol>
+              <ol>{quotes.current.map(({id,quoteRef})=><li key={id}><Link  to={`/quote/${id}`}>{quoteRef}</Link></li>)}</ol>
             </Suspense>} 
         </Block>
   ); 

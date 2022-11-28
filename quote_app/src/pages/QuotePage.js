@@ -12,6 +12,16 @@ import { isEmpty } from '../utils';
 import { useImmerReducer } from 'use-immer';
 import { Block, ResponsiveBlock } from '../App.styled';
 
+const initialState = {
+  quoteFound: true,
+  quote: {},
+  selectedPeriod: PERIODS.MONTHLY,
+  displayPrice: 0,
+  selectedAddons: [],
+  loadingQuote: true,
+  loadingAddons: true,
+  addons: []
+};
 function calcPrices(_draft){
   let calculatedDisplayPrice = _draft.displayPrice;
   calculatedDisplayPrice = _draft.quote[`${_draft.selectedPeriod}Price`]
@@ -61,16 +71,7 @@ export const quotePageStateReducer = (draft, action) => {
 }
 export function QuotePage() {
   const { quoteId } = useParams();
-  const [pageState, dispatchPageState] =  useImmerReducer( quotePageStateReducer,{
-    quoteFound: true,
-    quote: {},
-    selectedPeriod: PERIODS.MONTHLY,
-    displayPrice: 0,
-    selectedAddons: [],
-    loadingQuote: true,
-    loadingAddons: true,
-    addons: []
-  });
+  const [pageState, dispatchPageState] =  useImmerReducer( quotePageStateReducer, initialState);
   useEffect(() => {
     getQuote(quoteId).then((quote) => {
       if (isEmpty(quote)) {
