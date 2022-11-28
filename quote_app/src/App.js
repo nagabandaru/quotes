@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import './App.css';
 import { GlobalStyles, ResponsiveBlock, RightAlignedActionsBlock } from './App.styled';
@@ -11,7 +11,7 @@ import {
   Routes,
 } from "react-router-dom";
 import { QuotesPage } from './pages/QuotesPage';
-import { TwoStateButton, TwoWayTextSwitchButton } from './components/basic/toggled_components';
+import { TwoStateButton } from './components/basic/toggled_components';
 
 const ThemedQuote = styled.div`
   background-color: ${({theme})=>theme.pageBg}
@@ -44,20 +44,14 @@ function App() {
               />
             </RightAlignedActionsBlock>
           </StyledToolBar>
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<QuotesPage />}></Route>
-      <Route path="/quote">
-        <Route path=":quoteId" element={<QuotePage />} />
-      </Route>
-  </Routes>
-  </BrowserRouter>
-{/*           
-          <Routes>
-              <Route path="quotes">
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<QuotesPage />}></Route>
+              <Route path="/quote">
                 <Route path=":quoteId" element={<QuotePage />} />
               </Route>
-          </Routes> */}
+          </Routes>
+          </BrowserRouter>
         </div>
       </ThemedQuote>
     </ThemeProvider>
