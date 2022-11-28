@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, Suspense } from 'react'
 import { getQuote } from '../services/quotes';
 import { getAddons } from '../services/addons';
 import { QuotePriceCard } from '../components/QuotePriceCard';
@@ -12,54 +12,56 @@ import { isEmpty } from '../utils';
 import { useImmerReducer } from 'use-immer';
 import { Block, ResponsiveBlock } from '../App.styled';
 
+function calcPrices(_draft){
+  let calculatedDisplayPrice = _draft.displayPrice;
+  calculatedDisplayPrice = _draft.quote[`${_draft.selectedPeriod}Price`]
+  calculatedDisplayPrice = _draft.selectedAddons.reduce((a, c) => {
+    return a + (_draft.addons[c][`${_draft.selectedPeriod}Price`] || 0);
+  }, calculatedDisplayPrice);
+  return calculatedDisplayPrice;
+}
+
+export const quotePageStateReducer = (draft, action) => {
+  switch (action.type) {
+    case "quote":
+      draft.quote = action.value;
+      draft.displayPrice = calcPrices(draft);
+      break;
+
+    case "doneLoadingQuote":
+      draft.loadingQuote = false;
+      break;
+    case "doneLoadingAddons":
+      draft.loadingAddons = false;
+      break;
+    case "quoteFound":
+      draft.quoteFound = action.value;
+      break;
+    case "selectedPeriod":
+      draft.selectedPeriod = action.value;
+      draft.displayPrice = calcPrices(draft);
+      break;
+    case "selectAddons":
+      if(draft.selectedAddons.indexOf(action.value) === -1){
+        draft.selectedAddons.push(action.value);
+      }
+      draft.displayPrice = calcPrices(draft);
+      break;
+    case "deselectAddons":
+        draft.selectedAddons.splice(draft.selectedAddons.indexOf(action.value), 1);
+        draft.displayPrice = calcPrices(draft);
+        break;
+    case 'addons':
+      draft.addons = action.value;
+      break;
+    default:
+      break;
+  }
+  return draft;
+}
 export function QuotePage() {
   const { quoteId } = useParams();
-  const quoteFetchedRef = useRef(false);
-  const addonsFetchedRef = useRef(false);
-  const [pageState, dispatchPageState] =  useImmerReducer((draft, action) => {
-    function calcPrices(_draft){
-      let calculatedDisplayPrice = _draft.displayPrice;
-      calculatedDisplayPrice = _draft.quote[`${_draft.selectedPeriod}Price`]
-      calculatedDisplayPrice = _draft.selectedAddons.reduce((a, c) => {
-        return a + (_draft.addons[c][`${_draft.selectedPeriod}Price`] || 0);
-      }, calculatedDisplayPrice);
-      return calculatedDisplayPrice;
-    }
-    switch (action.type) {
-      case "quote":
-        draft.quote = action.value;
-        draft.displayPrice = calcPrices(draft);
-        break;
-      case "loadingQuote":
-        draft.loadingQuote = action.value;
-        break;
-      case "quoteFound":
-        draft.quoteFound = action.value;
-        break;
-      case "loadingAddons":
-        draft.loadingAddons = action.value;
-        break;
-      case "selectedPeriod":
-        draft.selectedPeriod = action.value;
-        draft.displayPrice = calcPrices(draft);
-        break;
-      case "selectAddons":
-        if(draft.selectedAddons.indexOf(action.value) === -1){
-          draft.selectedAddons.push(action.value);
-        }
-        draft.displayPrice = calcPrices(draft);
-        break;
-      case "deselectAddons":
-          draft.selectedAddons.splice(draft.selectedAddons.indexOf(action.value), 1);
-          draft.displayPrice = calcPrices(draft);
-          break;
-      case 'addons':
-        draft.addons = action.value;
-        break;
-      default:
-        break;
-    }
-  },{
+  const [pageState, dispatchPageState] =  useImmerReducer( quotePageStateReducer,{
     quoteFound: true,
     quote: {},
     selectedPeriod: PERIODS.MONTHLY,
@@ -70,21 +72,19 @@ export function QuotePage() {
     addons: []
   });
   useEffect(() => {
-    if (quoteFetchedRef.current) return;
-    quoteFetchedRef.current = true;
     getQuote(quoteId).then((quote) => {
       if (isEmpty(quote)) {
         dispatchPageState({ type: 'quoteFound', value: false})
       } else {
         dispatchPageState({ type: 'quote', value: quote})
-        dispatchPageState({ type: 'loadingQuote', value: false})
+        dispatchPageState({ type: 'doneLoadingQuote'})
       }
+    }).catch(()=>{
+      throw Error("Fetching quote error ");
     });
 
-    if (addonsFetchedRef.current) return;
-    addonsFetchedRef.current = true;
     getAddons().then((addons) => {
-      dispatchPageState({ type: 'loadingAddons', value: false})
+      dispatchPageState({ type: 'doneLoadingAddons'})
       addons = addons.map((addon, index) => {
         return {...addon, index}  
       });
@@ -99,9 +99,9 @@ export function QuotePage() {
   }
   return (
     <>
-      {pageState.loadingQuote ? <Loader>Loading Quote...</Loader> :
+      {pageState.loadingQuote &&
         !pageState.quoteFound ? <NormalText>Quote not found</NormalText> :
-        <>
+        <Suspense fallback={<Loader>Loading Quote...</Loader>}>
           <ResponsiveBlock>
             <QuoteInfoCard
               style={{gridArea: 'quoteInfo'}}
@@ -122,16 +122,18 @@ export function QuotePage() {
           <Block>
             <Heading1 style={{gridArea: "addonTagline"}}>Tailor your cover with our optional extra</Heading1>
           </Block>
-            {pageState.loadingAddons ?
-                <Loader>Loading Addons...</Loader> : 
-                <ResponsiveBlock>{pageState.addons.map((e, i) => <AddOnCard key={i} index={i} details={e} 
+            {!pageState.loadingAddons &&<Suspense fallback={<Loader>Loading Addons...</Loader>}>
+                <ResponsiveBlock>
+                  {pageState.addons.length === 0 && <Block>No addons found..</Block>}
+                  {pageState.addons.map((e, i) => <AddOnCard key={i} index={i} details={e} 
                   selected={pageState.selectedAddons.indexOf(i) !== -1} 
                   selectedPeriod={pageState.selectedPeriod}
                 onSelected={(index)=>{
                   dispatchPageState({ type: 'selectAddons', value: index})
                 }}
-                onRemoved={deselectAddOn} />)}</ResponsiveBlock>}
-          </>}
+                onRemoved={deselectAddOn} />)}</ResponsiveBlock>
+                </Suspense> }
+        </Suspense>}
     </>
   );
 }
